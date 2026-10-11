@@ -13,37 +13,48 @@ const packageRoot = path.resolve('test-mods/comprehensive-test-pack')
 const readJson = async <T>(relativePath: string): Promise<T> =>
   JSON.parse(await readFile(path.join(packageRoot, relativePath), 'utf8')) as T
 
+const expectedEntrypoints = {
+  'taoyuan:tag': 'data/tags.json',
+  'taoyuan:item': 'data/items.json',
+  'taoyuan:crop': 'data/crops.json',
+  'taoyuan:monster': 'data/monsters.json',
+  'taoyuan:drop_table': 'data/drop-tables.json',
+  'taoyuan:enchantment': 'data/enchantments.json',
+  'taoyuan:equipment': 'data/equipment.json',
+  'taoyuan:recipe': 'data/recipes.json'
+} as const
+
 describe('comprehensive test pack', () => {
-  it('ships the gameplay modifiers needed for PC smoke tests', async() => {
+  it('is a pure data package without gameplay modifiers', async() => {
     const manifest = await readJson<{
-      gameplayModifiers: {
-        unlimitedMoney: boolean
-        randomStartingItems: { options: unknown[]; picks: number }
-        startingEquipment: unknown[]
-        monsterHealthBarColor: string
-      }
+      gameplayModifiers?: unknown
+      entrypoints: Record<string, string[]>
     }>('manifest.json')
 
-    expect(manifest.gameplayModifiers.unlimitedMoney).toBe(true)
-    expect(manifest.gameplayModifiers.randomStartingItems.options.length).toBeGreaterThanOrEqual(5)
-    expect(manifest.gameplayModifiers.randomStartingItems.picks).toBeGreaterThanOrEqual(2)
-    expect(manifest.gameplayModifiers.startingEquipment).toHaveLength(3)
-    expect(manifest.gameplayModifiers.monsterHealthBarColor).toBe('#f97316')
+    expect(manifest.gameplayModifiers).toBeUndefined()
+    expect(manifest.entrypoints).toEqual(
+      Object.fromEntries(Object.entries(expectedEntrypoints).map(([registryId, file]) => [registryId, [file]]))
+    )
   })
 
-  it('starts with at least three craftable recipes and matching output items', async() => {
-    const manifest = await readJson<{ gameplayModifiers: { unlockedRecipeIds: string[]; startingItems: Array<{ itemId: string; quantity: number }> } }>('manifest.json')
-    const recipes = await readJson<Array<{ id: string; ingredients: Array<{ type: string; itemId?: string; quantity: number }>; outputItemId: string }>>('data/recipes.json')
-    const items = await readJson<Array<{ id: string }>>('data/items.json')
-    const inventory = new Map(manifest.gameplayModifiers.startingItems.map(item => [item.itemId, item.quantity]))
-    const itemIds = new Set(items.map(item => item.id))
-    const unlocked = new Set(manifest.gameplayModifiers.unlockedRecipeIds)
-    const craftable = recipes.filter(recipe => unlocked.has(recipe.id)
-      && itemIds.has(recipe.outputItemId)
-      && recipe.ingredients.every(ingredient => ingredient.type === 'item'
-        && (inventory.get(ingredient.itemId!) ?? 0) >= ingredient.quantity))
+  it('ships the intended namespaced data definitions', async() => {
+    const expectedIds = [
+      'taoyuan_test_suite:seed_radish',
+      'taoyuan_test_suite:radish_crop',
+      'taoyuan_test_suite:hearty_soup',
+      'taoyuan_test_suite:ember_blade',
+      'taoyuan_test_suite:ember_edge',
+      'taoyuan_test_suite:training_slime',
+      'taoyuan_test_suite:training_drop',
+      'taoyuan_test_suite:seed'
+    ]
+    const entries = await Promise.all(Object.values(expectedEntrypoints).map(relativePath =>
+      readJson<Array<{ id: string }>>(relativePath)
+    ))
+    const ids = new Set(entries.flat().map(entry => entry.id))
 
-    expect(craftable.length).toBeGreaterThanOrEqual(3)
+    for (const id of expectedIds) expect(ids.has(id)).toBe(true)
+    expect(entries.flat().every(entry => entry.id.startsWith('taoyuan_test_suite:'))).toBe(true)
   })
 
   it('round-trips the shipped ZIP through the Web archive import source', async() => {
@@ -68,5 +79,8 @@ describe('comprehensive test pack', () => {
     expect(report.summary.validPackageCount).toBe(1)
     expect(report.summary.issueCount).toBe(0)
     expect(report.candidates[0]?.packageId).toBe('taoyuan_test_suite')
+    expect(report.candidates[0]?.contentFiles.map(file => file.registryId).sort()).toEqual(
+      Object.keys(expectedEntrypoints).sort()
+    )
   })
 })

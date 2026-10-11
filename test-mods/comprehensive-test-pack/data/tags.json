@@ -2,7 +2,7 @@
   {
     "id": "taoyuan_test_suite:seed",
     "name": { "key": "taoyuan_test_suite.tag.seed.name", "fallback": "测试种子" },
-    "description": { "key": "taoyuan_test_suite.tag.seed.description", "fallback": "用于验证种子与随机开局物品。" },
+    "description": { "key": "taoyuan_test_suite.tag.seed.description", "fallback": "用于验证种子标签数据。" },
     "propagateToCraftedOutput": false,
     "stackPolicy": "merge"
   },

@@ -70,27 +70,6 @@ const tryContentId = (id: string | undefined): ContentId | null => {
   }
 }
 
-const toLocalItemId = (id: string): string => id.slice(id.indexOf(':') + 1)
-
-const buildItemDefinitions = (items: readonly Readonly<ItemDef>[]) =>
-  new Map(items.map(item => [item.id, item]))
-
-const resolveInventoryContentId = (
-  id: string,
-  itemDefinitions: Map<string, Readonly<ItemDef>>
-): ContentId => {
-  const explicitContentId = tryContentId(id)
-  if (id.includes(':') && explicitContentId !== null) return explicitContentId
-
-  const officialContentId = toContentId(id)
-  if (itemDefinitions.has(officialContentId)) return officialContentId
-
-  const matchingCustomId = Array.from(itemDefinitions.keys()).find(contentId =>
-    toLocalItemId(contentId) === id
-  )
-  return (matchingCustomId ?? officialContentId) as ContentId
-}
-
 export const normalizeCookingIngredient = (ingredient: CookingIngredient): RecipeIngredient => {
   if ('type' in ingredient) {
     if (ingredient.type === 'item') {
@@ -109,20 +88,22 @@ export const normalizeCookingIngredient = (ingredient: CookingIngredient): Recip
   }
 }
 
-const normalizeStacks = (
-  stacks: readonly IngredientInventoryStack[],
-  itemDefinitions: Map<string, Readonly<ItemDef>>
-) => {
+const normalizeStacks = (stacks: readonly IngredientInventoryStack[]) => {
   const byItem = new Map<string, Map<Quality, number>>()
   for (const stack of stacks) {
     if (stack.quantity <= 0) continue
-    const contentId = resolveInventoryContentId(stack.itemId, itemDefinitions)
+    const contentId = toContentId(stack.itemId)
     const byQuality = byItem.get(contentId) ?? new Map<Quality, number>()
     byQuality.set(stack.quality, (byQuality.get(stack.quality) ?? 0) + stack.quantity)
     byItem.set(contentId, byQuality)
   }
   return byItem
 }
+
+const buildItemDefinitions = (items: readonly Readonly<ItemDef>[]) =>
+  new Map(items.map(item => [item.id, item]))
+
+const toLocalItemId = (id: string): string => id.slice(id.indexOf(':') + 1)
 
 const getItemTags = (item: Readonly<ItemDef> | undefined): readonly string[] => item?.tags ?? []
 
@@ -144,9 +125,7 @@ const getCandidateItemIds = (
 ): string[] => {
   if (ingredient.type === 'item') return [ingredient.itemId]
 
-  const selectedContentId = selectedItemId === undefined
-    ? null
-    : resolveInventoryContentId(selectedItemId, itemDefinitions)
+  const selectedContentId = tryContentId(selectedItemId)
   if (selectedContentId) {
     return availability.has(selectedContentId) && matchesIngredient(itemDefinitions.get(selectedContentId), ingredient)
       ? [selectedContentId]
@@ -229,8 +208,8 @@ export const createIngredientAllocationPlan = (options: {
 }): IngredientAllocationResult => {
   const quantity = Math.floor(options.quantity)
   const ingredients = options.ingredients.map(normalizeCookingIngredient)
+  const availability = normalizeStacks(options.inventory)
   const itemDefinitions = buildItemDefinitions(options.items)
-  const availability = normalizeStacks(options.inventory, itemDefinitions)
   const slots: IngredientAllocationSlot[] = []
   const removals: IngredientAllocation[] = []
   let resultQualityIndex = QUALITY_ORDER.length - 1
@@ -276,8 +255,8 @@ export const getMaxIngredientCraftQuantity = (options: {
   const ingredients = options.ingredients.map(normalizeCookingIngredient)
   if (ingredients.length === 0) return 0
 
+  const availability = normalizeStacks(options.inventory)
   const itemDefinitions = buildItemDefinitions(options.items)
-  const availability = normalizeStacks(options.inventory, itemDefinitions)
   let upper = options.upperLimit ?? Infinity
   for (const [slotIndex, ingredient] of ingredients.entries()) {
     const total = getCandidateItemIds(
@@ -317,8 +296,8 @@ export const getIngredientCandidates = (options: {
   selectedItemId?: string
 }): IngredientCandidate[] => {
   const ingredient = normalizeCookingIngredient(options.ingredient)
+  const availability = normalizeStacks(options.inventory)
   const itemDefinitions = buildItemDefinitions(options.items)
-  const availability = normalizeStacks(options.inventory, itemDefinitions)
   return getCandidateItemIds(ingredient, itemDefinitions, availability, options.selectedItemId).map(itemId => {
     const byQuality = availability.get(itemId) ?? new Map<Quality, number>()
     const qualities = QUALITY_ORDER.map(quality => ({

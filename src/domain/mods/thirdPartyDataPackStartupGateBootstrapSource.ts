@@ -17,7 +17,6 @@ import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
-import type { ActiveThirdPartyGameplayModifiers } from './thirdPartyGameplayModifiers'
 import {
   readThirdPartyDataPackEnabledRuntimeCommandId,
   type ThirdPartyDataPackEnabledRuntimeCommandId
@@ -106,7 +105,6 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceResult {
   readonly packageCount: number
   readonly lockfileHash?: Sha256Hash
   readonly saveContentEnvironment?: SaveContentEnvironment
-  readonly gameplayModifiers?: ActiveThirdPartyGameplayModifiers
   readonly persistentStateProofs?: ThirdPartyDataPackStartupGatePersistentStateSourceProofs
   readonly diagnostics: readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[]
   readonly summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary

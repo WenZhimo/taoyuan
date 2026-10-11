@@ -167,10 +167,6 @@ import {
   validateThirdPartyDataPackLockfileDraft,
   type ThirdPartyDataPackLockfileDraft
 } from './thirdPartyDataPackLockfileDraft'
-import {
-  mergeThirdPartyGameplayModifiers,
-  type ActiveThirdPartyGameplayModifiers
-} from './thirdPartyGameplayModifiers'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -212,7 +208,6 @@ interface InstalledStateContext {
   readonly launcherBoundaryPreflight: ThirdPartyDataPackLauncherBoundaryPreflightResult
   readonly startupPersistentStateSource: ThirdPartyDataPackStartupGatePersistentStateSourceResult
   readonly candidateRegistryCacheStatus: CandidateRegistryCacheStatus
-  readonly gameplayModifiers: ActiveThirdPartyGameplayModifiers
   readonly summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary
 }
 
@@ -684,24 +679,6 @@ const resolveInstalledStateTargetPackageId = (
     ?? mountInput.selectedPackageIds[0]
 }
 
-const collectSelectedGameplayModifiers = (
-  discoveryReport: ThirdPartyDataPackDiscoveryReport,
-  loadOrder: readonly PackageId[]
-): ActiveThirdPartyGameplayModifiers => {
-  const manifestsByPackageId = new Map<PackageId, NonNullable<typeof discoveryReport.candidates[number]['manifest']>>()
-  for (const candidate of discoveryReport.candidates) {
-    if (candidate.packageId !== undefined && candidate.manifest !== undefined) {
-      manifestsByPackageId.set(candidate.packageId, candidate.manifest)
-    }
-  }
-  return mergeThirdPartyGameplayModifiers(
-    loadOrder.flatMap(packageId => {
-      const manifest = manifestsByPackageId.get(packageId)
-      return manifest === undefined ? [] : [manifest]
-    })
-  )
-}
-
 const buildInstalledStateRuntimeContext = async(
   sourceKind: InstalledStateSourceKind,
   source: ContentPackageSource,
@@ -885,7 +862,6 @@ const buildInstalledStateRuntimeContext = async(
     publicationRollbackRecovery,
     runtimePublicationCommitAdapter: targetedRuntimePublicationCommitAdapter,
     candidateRegistryCacheStatus,
-    gameplayModifiers: collectSelectedGameplayModifiers(discoveryReport, mountInput.loadOrder),
     summary: Object.freeze({
       selectedPackageCount: mountInput.selectedPackageIds.length,
       blockedPackageCount: mountInput.blockedPackageIds.length,
@@ -2222,9 +2198,6 @@ export const createThirdPartyDataPackInstalledStateStartupGateBootstrapSource = 
       ? {}
       : { persistentStateProofs: context.startupPersistentStateSource.persistentStateProofs }),
     candidateRegistryCacheStatus: context.candidateRegistryCacheStatus,
-    ...(result.status === 'ready'
-      ? { gameplayModifiers: context.gameplayModifiers }
-      : {}),
     effects: Object.freeze({
       ...result.effects,
       startupPersistentStateSourceCalled:
